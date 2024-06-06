@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+	id="WebApp_ID" version="3.1">
+	<display-name>Continental</display-name>
+	<welcome-file-list>
+		<welcome-file>/jsp/login.jsp</welcome-file>
+	</welcome-file-list>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/jsp/error500.jsp</location>
+	</error-page>
+	<filter>
+		<filter-name>ServletFilter</filter-name>
+		<filter-class>server.ServletFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>ServletFilter</filter-name>
+		<url-pattern>/app/*</url-pattern>
+	</filter-mapping>
+	<filter>
+		<filter-name>ApiFilter</filter-name>
+		<filter-class>server.ApiFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>ApiFilter</filter-name>
+		<url-pattern>/api/*</url-pattern>
+	</filter-mapping>
+	<servlet>
+		<servlet-name>Servlet</servlet-name>
+		<servlet-class>server.Servlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>Servlet</servlet-name>
+		<url-pattern>/app/*</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>ApiOne</servlet-name>
+		<servlet-class>server.ApiOne</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ApiOne</servlet-name>
+		<url-pattern>/api/v1/*</url-pattern>
+	</servlet-mapping>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>Continental</web-resource-name>
+			<url-pattern>/*</url-pattern>
+		</web-resource-collection>
+		<user-data-constraint>
+			<transport-guarantee>CONFIDENTIAL</transport-guarantee>
+		</user-data-constraint>
+	</security-constraint>
+</web-app>

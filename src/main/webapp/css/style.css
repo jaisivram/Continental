@@ -1,0 +1,133 @@
+* {
+	box-sizing: border-box;
+	margin: 0;
+}
+
+body {
+	background-color: #585858;
+	display: flex;
+	justify-content: center;
+}
+
+.page {
+	display: flex;
+	flex-direction: column;
+	background-color: white;
+	height: 100vh;
+	width: 70vw;
+}
+
+.top-nav {
+	display: flex;
+	justify-content: flex-end;
+	background-color: #333;
+	height: 4vh;
+}
+
+.top-nav a {
+	padding-top: 0.5%
+}
+
+.top-nav button {
+	background-color: transparent;
+	border: none;
+	color: #FFF;
+	cursor: pointer;
+}
+
+.main {
+	display: flex;
+}
+
+.side-nav {
+	display: flex;
+	flex-direction: column;
+	background-color: cadetblue;
+	height: 96vh;
+	width: 200px;
+}
+
+.side-nav-part {
+	display: flex;
+	flex-direction: column;
+}
+
+.side-nav-part-opt {
+	display: flex;
+	flex-direction: column;
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+	background-color: darkslategray;
+	height: 93vh;
+	width: 80%;
+	padding: 2%;
+	margin: 1vh 1vw;
+	border: 1px solid black;
+	background-color: rgb(50, 119, 146);
+	border-radius: 10px;
+}
+
+.side-nav button {
+	height: 4vh;
+	cursor: pointer;
+}
+
+.side-nav button {
+	background-color: dodgerblue;
+	border: none;
+	border-bottom: 1px solid #000;
+}
+
+.side-nav-part-opt button {
+	background-color: rgb(50, 116, 146);
+}
+
+.content {
+	overflow: auto;
+}
+
+.selected {
+	background-color: rgb(255, 210, 196) !important;
+	color: black !important;
+}
+
+.hidden {
+	display: none;
+}
+
+#login-form {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 10px;
+	padding: 50px 25px;
+	padding-top: 25px;
+	margin: 10% 30%;
+	border: 1px transparent;
+	border-radius: 10px;
+	background-color: cadetblue;
+}
+
+#login-form input {
+	border-style: solid;
+	border: 1px;
+	border-radius: 2px;
+	padding: 2%;
+}
+
+#login-form input[type="submit"] {
+	border-style: solid;
+	background-color: rgb(84, 141, 199);
+	border: 1px;
+	border-radius: 2px;
+	padding: 2%;
+	cursor: pointer;
+}
+
+.error {
+	color: red;
+}
+
