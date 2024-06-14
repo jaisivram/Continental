@@ -2,11 +2,14 @@
 package server;
 import app.exceptions.Xception;
 import app.models.Account;
+import app.utils.LoggerProvider;
+import app.utils.PropLoader;
 import redis.clients.jedis.Jedis;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 import com.google.gson.Gson;
 public class Cache {
@@ -33,6 +36,12 @@ public class Cache {
     } 
 	private final static Map<Long, Object> locks = new ConcurrentHashMap<>();
 	private Cache() {
+		try {
+			redisSocket =  PropLoader.getProp("redis_socket");
+		}
+		catch(Exception e){
+			LoggerProvider.getLogger().log(Level.SEVERE,e.getMessage(),e);
+		}
 		if(redisSocket==null) {
 			accountCache = new AccountCache();
 		}
@@ -42,7 +51,7 @@ public class Cache {
 		}
 	}
 	private Jedis jedis;
-	private static String redisSocket = System.getenv("redis_socket");
+	private static String redisSocket;
 	private static Cache cache;
 	private AccountCache accountCache;
 	

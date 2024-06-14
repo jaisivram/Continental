@@ -24,11 +24,6 @@ public class Test {
         }
     }
     public static void main(String...args) throws NoSuchMethodException, SecurityException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException{
-        GenEnum g = GenEnum.DB_TYPE_DOUBLE;
-        Constructor[] carr = g.getClass().getDeclaredConstructors();
-        carr[0].setAccessible(true);
-        Object x = carr[0].newInstance("ABC","DEF");
-        GenEnum y = (GenEnum)x;
-        System.out.println(y.getDbType("pg"));
+        System.out.println(System.getenv());
     }
 }

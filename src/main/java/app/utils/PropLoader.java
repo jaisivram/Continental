@@ -7,7 +7,7 @@ import java.util.Properties;
 import app.exceptions.Xception;
 public class PropLoader {
 	private static Properties props;
-	public static String getProp(String key) throws Xception{
+	public static String getProp(String key) throws Xception {
 		if(props!=null) {
 			return props.getProperty(key);
 		}

@@ -15,24 +15,19 @@ import java.util.logging.Logger;
 import app.enums.GenEnum;
 import app.exceptions.Xception;
 import app.utils.LoggerProvider;
+import app.utils.PropLoader;
 public class SQLClient {
 	public Long userId;
 	private static Logger logger = LoggerProvider.getLogger();
-    private static final ThreadLocal<SQLClient> threadLocalInstance = ThreadLocal.withInitial(() -> {
-        try {
-            return new SQLClient();
-        } catch (Xception e) {
-            throw new RuntimeException("Error creating MySQLClient instance", e);
-        }
-    });
+    private static final ThreadLocal<SQLClient> threadLocalInstance = new ThreadLocal<SQLClient>();
     private List<String> batch;
-    private String db = System.getenv("db");
-    private String url = System.getenv(db+"_url");
-    private String user = System.getenv(db+"_user");
-    private String password = System.getenv(db+"_password");
+    private String db = PropLoader.getProp("db");
+    private String url = PropLoader.getProp(db+"_url");
+    private String user = PropLoader.getProp(db+"_user");
+    private String password = PropLoader.getProp(db+"_password");
     private SQLClient() throws Xception {
         try {
-            Class.forName(System.getenv(db+"_driver_class")); //com.mysql.cj.jdbc.Driver
+            Class.forName(PropLoader.getProp(db+"_driver_class")); //com.mysql.cj.jdbc.Driver
         }
         catch(Exception e) {
         	logger.log(Level.SEVERE,e.getMessage(),e);
@@ -40,9 +35,24 @@ public class SQLClient {
         }
     }
 
+    public static void destroyClient() {
+        logger.info(" msg ::: " + (threadLocalInstance.get()==null));
+        logger.info("destroy client called null..");
+        threadLocalInstance.set(null);
+    }
+
     public static SQLClient getInstance() throws Xception {
         try {
-        	return threadLocalInstance.get();
+            logger.info("getInstance is called...");
+            SQLClient sqlClient = threadLocalInstance.get();
+            if (sqlClient == null) {
+                logger.info("new local sqlclient created");
+                sqlClient = new SQLClient();
+                threadLocalInstance.set(sqlClient);
+            } else {
+                logger.info("sqlclient created already available");
+            }
+            return sqlClient;
         }
         catch(RuntimeException e) {
         	logger.log(Level.SEVERE,e.getMessage(),e);
@@ -54,6 +64,10 @@ public class SQLClient {
         List<Map<String,Object>> records = new ArrayList<>();
         try (Connection con = DriverManager.getConnection(url,user,password)){
             try (Statement state = con.createStatement()){
+                if(db.equals("pg")){
+                    String schema = PropLoader.getProp("schema");
+                    state.execute("SET search_path to "+schema+";");
+                }
                 try (ResultSet rs = state.executeQuery(query)){
                     int columnLen = rs.getMetaData().getColumnCount();
                     while(rs.next()) {
@@ -91,11 +105,11 @@ public class SQLClient {
             }
         } catch(SQLException e) {
         	logger.log(Level.SEVERE,e.getMessage(),e);
-        	//e.printStackTrace();
+        	e.printStackTrace();
         	throw new Xception("internal error");
         } catch(Exception e){
             logger.log(Level.SEVERE,e.getMessage(),e);
-            //e.printStackTrace();
+            e.printStackTrace();
             throw new Xception("internal error");
         }
         return records;
@@ -104,6 +118,10 @@ public class SQLClient {
     public void execute(String query) throws Xception {
         try (Connection con = DriverManager.getConnection(url,user,password);
              Statement state = con.createStatement()) {
+            if(db.equals("pg")){
+                String schema = PropLoader.getProp("schema");
+                state.execute("SET search_path to "+schema+";");
+            }
             con.setAutoCommit(false);
             for(String qrr : query.split(";")) {
                 state.executeUpdate(qrr);

@@ -187,88 +187,90 @@ public class Operations {
 	}
 
 	public void makeTransaction(Transaction transaction) throws UIException {
-		Account sourceAccount = new Account();
-		Long sourceAccountNumber = transaction.getSourceAccountNumber();
-		Long transactionAccountNumber = transaction.getTransactionAccountNumber();
-		if (sourceAccountNumber == transactionAccountNumber) {
-			throw new UIException("cant transfer to same account");
-		}
-		sourceAccount = getAccount(sourceAccountNumber);
-		switch (transaction.getTransactionType()) {
-			case "deposit":
-				sourceAccount = credit(sourceAccount, transaction.getCredit());
-				transaction.setTransactionAccountNumber(0L);
-				transaction.setBalance(sourceAccount.getBalance());
-				try {
-					adao.setAccount(sourceAccount);
-					tdao.setTransaction(transaction);
-					tdao.execute();
-				} catch (Xception e) {
-					logger.log(Level.SEVERE, e.getMessage(), e);
-					throw new UIException("internal error");
-				}
-				break;
-			case "withdraw":
-				sourceAccount = debit(sourceAccount, transaction.getDebit());
-				transaction.setBalance(sourceAccount.getBalance());
-				transaction.setTransactionAccountNumber(0L);
-				try {
-					adao.setAccount(sourceAccount);
-					tdao.setTransaction(transaction);
-					tdao.execute();
-				} catch (Xception e) {
-					logger.log(Level.SEVERE, e.getMessage(), e);
-					throw new UIException("internal error");
-				}
-				break;
-			case "transfer":
-				sourceAccount = getAccount(sourceAccountNumber);
-				sourceAccount = debit(sourceAccount, transaction.getDebit());
-				transaction.setBalance(sourceAccount.getBalance());
-				try {
-					adao.setAccount(sourceAccount);
-					tdao.setTransaction(transaction);
-				} catch (Xception e) {
-					logger.log(Level.SEVERE, e.getMessage(), e);
-					throw new UIException("sender side error");
-				}
-				Account transactionAccount = new Account();
-				Transaction nextTrans = new Transaction();
-				if (transaction.getScope().equals("internal")) {
-					if (sourceAccountNumber.equals(transactionAccountNumber)) {
-						throw new UIException("cant transfer to same account");
-					}
-					transactionAccount = getAccount(transactionAccountNumber);
-					nextTrans.setSourceAccountNumber(transactionAccountNumber);
-					nextTrans.setCustomerId(transactionAccount.getCustomerId());
-					nextTrans.setTransactionId(transaction.getTransactionId());
-					nextTrans.setCredit(transaction.getDebit());
-					nextTrans.setTimeStamp(transaction.getTimeStamp());
-					nextTrans.setTransactionAccountNumber(transaction.getSourceAccountNumber());
-					nextTrans.setTransactionType("transfer");
+		synchronized(transaction.getSourceAccountNumber()){
+			Account sourceAccount = new Account();
+			Long sourceAccountNumber = transaction.getSourceAccountNumber();
+			Long transactionAccountNumber = transaction.getTransactionAccountNumber();
+			if (sourceAccountNumber == transactionAccountNumber) {
+				throw new UIException("cant transfer to same account");
+			}
+			sourceAccount = getAccount(sourceAccountNumber);
+			switch (transaction.getTransactionType()) {
+				case "deposit":
+					sourceAccount = credit(sourceAccount, transaction.getCredit());
+					transaction.setTransactionAccountNumber(0L);
+					transaction.setBalance(sourceAccount.getBalance());
 					try {
-						transactionAccount = credit(transactionAccount, nextTrans.getCredit());
-					} catch (UIException e) {
-						if (e.getMessage().equals("inactive account")) {
-							throw new UIException("recipient account inactive");
-						}
-					}
-					nextTrans.setBalance(transactionAccount.getBalance());
-					try {
-						adao.setAccount(transactionAccount);
-						tdao.setTransaction(nextTrans);
+						adao.setAccount(sourceAccount);
+						tdao.setTransaction(transaction);
+						tdao.execute();
 					} catch (Xception e) {
 						logger.log(Level.SEVERE, e.getMessage(), e);
-						throw new UIException("reciever side error");
+						throw new UIException("internal error");
 					}
-				}
-				try {
-					tdao.execute();
-				} catch (Xception e) {
-					logger.log(Level.SEVERE, e.getMessage(), e);
-					throw new UIException("internal error");
-				}
-				break;
+					break;
+				case "withdraw":
+					sourceAccount = debit(sourceAccount, transaction.getDebit());
+					transaction.setBalance(sourceAccount.getBalance());
+					transaction.setTransactionAccountNumber(0L);
+					try {
+						adao.setAccount(sourceAccount);
+						tdao.setTransaction(transaction);
+						tdao.execute();
+					} catch (Xception e) {
+						logger.log(Level.SEVERE, e.getMessage(), e);
+						throw new UIException("internal error");
+					}
+					break;
+				case "transfer":
+					sourceAccount = getAccount(sourceAccountNumber);
+					sourceAccount = debit(sourceAccount, transaction.getDebit());
+					transaction.setBalance(sourceAccount.getBalance());
+					try {
+						adao.setAccount(sourceAccount);
+						tdao.setTransaction(transaction);
+					} catch (Xception e) {
+						logger.log(Level.SEVERE, e.getMessage(), e);
+						throw new UIException("sender side error");
+					}
+					Account transactionAccount = new Account();
+					Transaction nextTrans = new Transaction();
+					if (transaction.getScope().equals("internal")) {
+						if (sourceAccountNumber.equals(transactionAccountNumber)) {
+							throw new UIException("cant transfer to same account");
+						}
+						transactionAccount = getAccount(transactionAccountNumber);
+						nextTrans.setSourceAccountNumber(transactionAccountNumber);
+						nextTrans.setCustomerId(transactionAccount.getCustomerId());
+						nextTrans.setTransactionId(transaction.getTransactionId());
+						nextTrans.setCredit(transaction.getDebit());
+						nextTrans.setTimeStamp(transaction.getTimeStamp());
+						nextTrans.setTransactionAccountNumber(transaction.getSourceAccountNumber());
+						nextTrans.setTransactionType("transfer");
+						try {
+							transactionAccount = credit(transactionAccount, nextTrans.getCredit());
+						} catch (UIException e) {
+							if (e.getMessage().equals("inactive account")) {
+								throw new UIException("recipient account inactive");
+							}
+						}
+						nextTrans.setBalance(transactionAccount.getBalance());
+						try {
+							adao.setAccount(transactionAccount);
+							tdao.setTransaction(nextTrans);
+						} catch (Xception e) {
+							logger.log(Level.SEVERE, e.getMessage(), e);
+							throw new UIException("reciever side error");
+						}
+					}
+					try {
+						tdao.execute();
+					} catch (Xception e) {
+						logger.log(Level.SEVERE, e.getMessage(), e);
+						throw new UIException("internal error");
+					}
+					break;
+			}
 		}
 	}
 

@@ -24,17 +24,15 @@ import app.models.Employee;
 import app.models.Transaction;
 import app.models.User;
 import app.opt.Operations;
+import app.persist.SQLClient;
 import app.utils.LoggerProvider;
 import app.utils.Tools;
 
 public class Servlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	private Operations opt;
 	private Logger logger;
 
-	@Override
-	public void init() {
-		opt = new Operations();
+	public Servlet() {
 		logger = LoggerProvider.getLogger();
 	}
 
@@ -42,6 +40,7 @@ public class Servlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		try {
+			Operations opt = new Operations();
 			Object userId = request.getSession().getAttribute("userId");
 			Object employeeRole = request.getSession().getAttribute("employeeRole");
 			String route = request.getPathInfo();
@@ -54,80 +53,80 @@ public class Servlet extends HttpServlet {
 			request.setAttribute("parent", route.substring(1));
 			switch (route) {
 				case "/add":
-				request.getRequestDispatcher("/jsp/file.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/file.jsp").forward(request , response);
 				return;
 				case "/home":
-					loadHome(request, response);
+					loadHome(request ,response, opt);
 					break;
 				case "/login":
-					request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/login.jsp").forward(request , response);
 					break;
 				case "/dashboard":
-					loadDashboard(request, response);
+					loadDashboard(request ,response, opt);
 					break;
 				case "/profile":
-					loadProfile(request, response);
+					loadProfile(request ,response, opt);
 					break;
 				case "/logout":
 					request.getSession().invalidate();
 					response.sendRedirect("/Continental/app/login");
 					break;
 				case "/admin/add-branch":
-					request.getRequestDispatcher("/jsp/add/add-branch.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/add/add-branch.jsp").forward(request , response);
 					break;
 				case "/admin/view-branch":
-					request.getRequestDispatcher("/jsp/view/view-branch.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/view/view-branch.jsp").forward(request , response);
 					break;
 				case "/admin/add-employee":
-					request.getRequestDispatcher("/jsp/add/add-employee.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/add/add-employee.jsp").forward(request , response);
 					break;
 				case "/admin/view-employee":
-					request.getRequestDispatcher("/jsp/view/view-employee.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/view/view-employee.jsp").forward(request , response);
 					break;
 				case "/employee/add-customer":
-					request.getRequestDispatcher("/jsp/add/add-customer.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/add/add-customer.jsp").forward(request , response);
 					break;
 				case "/employee/view-customer":
-					request.getRequestDispatcher("/jsp/view/view-customer.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/view/view-customer.jsp").forward(request , response);
 					break;
 				case "/employee/add-account":
-					request.getRequestDispatcher("/jsp/employee/employee-add-account.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/employee/employee-add-account.jsp").forward(request , response);
 					break;
 				case "/admin/add-account":
-					request.getRequestDispatcher("/jsp/admin/admin-add-account.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/admin/admin-add-account.jsp").forward(request , response);
 					break;
 				case "/employee/view-account":
 					if (employeeRole != null && employeeRole.equals("admin")) {
 						request.setAttribute("isAdmin", true);
 					}
-					request.getRequestDispatcher("/jsp/view/view-account.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/view/view-account.jsp").forward(request , response);
 					break;
 				case "/customer/accounts":
-					customerLoadAccounts(request, response);
+					customerLoadAccounts(request ,response, opt);
 					break;
 				case "/customer/deposit":
-					customerDeposit(request, response);
+					customerDeposit(request ,response, opt);
 					break;
 				case "/employee/deposit":
-					request.getRequestDispatcher("/jsp/employee/employee-deposit.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/employee/employee-deposit.jsp").forward(request , response);
 					break;
 				case "/customer/withdraw":
-					customerWithdraw(request, response);
+					customerWithdraw(request ,response, opt);
 					break;
 				case "/employee/withdraw":
-					request.getRequestDispatcher("/jsp/employee/employee-withdraw.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/employee/employee-withdraw.jsp").forward(request , response);
 					break;
 				case "/customer/transfer":
-					customerTransfer(request, response);
+					customerTransfer(request ,response, opt);
 					break;
 				case "/employee/transfer":
-					request.getRequestDispatcher("/jsp/employee/employee-transfer.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/employee/employee-transfer.jsp").forward(request , response);
 					break;
 				case "/employee/view-statement":
-					request.getRequestDispatcher("/jsp/view/view-statement.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/view/view-statement.jsp").forward(request , response);
 					break;
 				case "/customer/statement":
-					loadCustomerStatement(request, response);
+					loadCustomerStatement(request ,response, opt);
 					break;
 				default:
 					response.getWriter().append("Served at: ").append(request.getContextPath());
@@ -136,6 +135,9 @@ public class Servlet extends HttpServlet {
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 			response.sendError(500);
+		} finally {
+			logger.info("destroy called actual GET");
+			SQLClient.destroyClient();	
 		}
 	}
 
@@ -143,6 +145,7 @@ public class Servlet extends HttpServlet {
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		try {
+			Operations opt = new Operations();
 			Object userId = request.getSession().getAttribute("userId");
 			String route = request.getPathInfo();
 			if (route != "/login") {
@@ -151,97 +154,100 @@ public class Servlet extends HttpServlet {
 			request.setAttribute("parent", route.substring(1));
 			switch (route) {
 				case "/login":
-					login(request, response);
+					login(request ,response, opt);
 					break;
 				case "/admin/add-branch":
-					addBranch(request, response);
+					addBranch(request ,response, opt);
 					break;
 				case "/admin/update-branch":
-					updateBranch(request, response);
+					updateBranch(request ,response, opt);
 					break;
 				case "/admin/view-branch":
-					viewBranch(request, response);
+					viewBranch(request ,response, opt);
 					break;
 				case "/admin/add-employee":
-					addEmployee(request, response);
+					addEmployee(request ,response, opt);
 					break;
 				case "/admin/update-employee":
-					updateEmployee(request, response);
+					updateEmployee(request ,response, opt);
 					break;
 				case "/admin/view-employee":
-					viewEmployee(request, response);
+					viewEmployee(request ,response, opt);
 					break;
 				case "/employee/add-customer":
-					addCustomer(request, response);
+					addCustomer(request ,response, opt);
 					break;
 				case "/employee/update-self":
-					updateProfile(request, response);
+					updateProfile(request ,response, opt);
 					break;
 				case "/employee/update-customer":
-					updateCustomer(request, response);
+					updateCustomer(request ,response, opt);
 					break;
 				case "/employee/view-customer":
-					viewCustomer(request, response);
+					viewCustomer(request ,response, opt);
 					break;
 				case "/customer/update-self":
-					updateProfile(request, response);
+					updateProfile(request ,response, opt);
 					break;
 				case "/customer/change-password":
-					changePassword(request, response);
+					changePassword(request ,response, opt);
 					break;
 				case "/employee/change-password":
-					changePassword(request, response);
+					changePassword(request ,response, opt);
 					break;
 				case "/employee/add-account":
-					addAccount(request, response);
+					addAccount(request ,response, opt);
 					break;
 				case "/admin/add-account":
-					addAccount(request, response);
+					addAccount(request ,response, opt);
 					break;
 				case "/employee/update-account":
-					updateAccount(request, response);
+					updateAccount(request ,response, opt);
 					break;
 				case "/employee/view-account":
-					viewAccount(request, response);
+					viewAccount(request ,response, opt);
 					break;
 				case "/customer/set-primary":
-					setPrimary(request, response);
+					setPrimary(request ,response, opt);
 					break;
 				case "/admin/update-account":
-					updateAccount(request, response);
+					updateAccount(request ,response, opt);
 					break;
 				case "/customer/deposit":
-					deposit(request, response);
+					deposit(request ,response, opt);
 					break;
 				case "/employee/deposit":
-					deposit(request, response);
+					deposit(request ,response, opt);
 					break;
 				case "/customer/withdraw":
-					withdraw(request, response);
+					withdraw(request ,response, opt);
 					break;
 				case "/employee/withdraw":
-					withdraw(request, response);
+					withdraw(request ,response, opt);
 					break;
 				case "/customer/transfer":
-					transfer(request, response);
+					transfer(request ,response, opt);
 					break;
 				case "/employee/transfer":
-					transfer(request, response);
+					transfer(request ,response, opt);
 					break;
 				case "/employee/view-statement":
-					viewStatement(request, response);
+					viewStatement(request ,response, opt);
 					break;
 				case "/customer/statement":
-					statementPost(request, response);
+					statementPost(request ,response, opt);
 					break;
 			}
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 			response.sendError(500);
+		} finally {
+			logger.info("destroy called POST");
+			SQLClient.destroyClient();	
 		}
 	}
 
-	public void checkUser(HttpServletRequest request, HttpServletResponse response)
+	public void checkUser(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		try {
 			if (!opt.checkUserStatus((Long) request.getSession().getAttribute("userId"))) {
@@ -252,12 +258,12 @@ public class Servlet extends HttpServlet {
 			return;
 		} catch (NumberFormatException e){
 			request.setAttribute("login-error", "invalid input");
-			request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/login.jsp").forward(request , response);
 			return;
 		}
 	}
 
-	private void customerLoadAccounts(HttpServletRequest request, HttpServletResponse response)
+	private void customerLoadAccounts(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Object userId = request.getSession().getAttribute("userId");
 		try {
@@ -268,10 +274,10 @@ public class Servlet extends HttpServlet {
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 		}
-		request.getRequestDispatcher("/jsp/customer/customer-accounts.jsp").forward(request, response);
+		request.getRequestDispatcher("/jsp/customer/customer-accounts.jsp").forward(request , response);
 	}
 
-	private void customerDeposit(HttpServletRequest request, HttpServletResponse response)
+	private void customerDeposit(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Object userId = request.getSession().getAttribute("userId");
 		try {
@@ -282,10 +288,10 @@ public class Servlet extends HttpServlet {
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 		}
-		request.getRequestDispatcher("/jsp/customer/customer-deposit.jsp").forward(request, response);
+		request.getRequestDispatcher("/jsp/customer/customer-deposit.jsp").forward(request , response);
 	}
 
-	private void customerWithdraw(HttpServletRequest request, HttpServletResponse response)
+	private void customerWithdraw(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Object userId = request.getSession().getAttribute("userId");
 		try {
@@ -296,10 +302,10 @@ public class Servlet extends HttpServlet {
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 		}
-		request.getRequestDispatcher("/jsp/customer/customer-withdraw.jsp").forward(request, response);
+		request.getRequestDispatcher("/jsp/customer/customer-withdraw.jsp").forward(request , response);
 	}
 
-	private void customerTransfer(HttpServletRequest request, HttpServletResponse response)
+	private void customerTransfer(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Object userId = request.getSession().getAttribute("userId");
 		try {
@@ -310,10 +316,10 @@ public class Servlet extends HttpServlet {
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 		}
-		request.getRequestDispatcher("/jsp/customer/customer-transfer.jsp").forward(request, response);
+		request.getRequestDispatcher("/jsp/customer/customer-transfer.jsp").forward(request , response);
 	}
 
-	private void loadHome(HttpServletRequest request, HttpServletResponse response)
+	private void loadHome(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Object userId = request.getSession().getAttribute("userId");
 		Object userType = request.getSession().getAttribute("userType");
@@ -328,7 +334,7 @@ public class Servlet extends HttpServlet {
 				} catch (UIException e) {
 					request.setAttribute("error", e.getMessage());
 				}
-				request.getRequestDispatcher("/jsp/customer/customer.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/customer/customer.jsp").forward(request , response);
 				break;
 			case "employee":
 				if (employeeRole.toString().equals("admin")) {
@@ -338,7 +344,7 @@ public class Servlet extends HttpServlet {
 					} catch (UIException e) {
 						request.setAttribute("error", e);
 					}
-					request.getRequestDispatcher("/jsp/admin/admin.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/admin/admin.jsp").forward(request , response);
 					break;
 				}
 				Branch branch = new Branch();
@@ -349,12 +355,12 @@ public class Servlet extends HttpServlet {
 				} catch (UIException e) {
 					request.setAttribute("error", e.getMessage());
 				}
-				request.getRequestDispatcher("/jsp/employee/employee.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/employee/employee.jsp").forward(request , response);
 				break;
 		}
 	}
 
-	private void loadCustomerStatement(HttpServletRequest request, HttpServletResponse response)
+	private void loadCustomerStatement(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Object userId = request.getSession().getAttribute("userId");
 		List<Object> timeFrames = new ArrayList<>();
@@ -387,10 +393,10 @@ public class Servlet extends HttpServlet {
 			request.setAttribute("error", e.getMessage());
 			System.out.println("here");
 		}
-		request.getRequestDispatcher("/jsp/customer/customer-statement.jsp").forward(request, response);
+		request.getRequestDispatcher("/jsp/customer/customer-statement.jsp").forward(request , response);
 	}
 
-	private void loadProfile(HttpServletRequest request, HttpServletResponse response)
+	private void loadProfile(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Object userId = request.getSession().getAttribute("userId");
 		Object userType = request.getSession().getAttribute("userType");
@@ -403,7 +409,7 @@ public class Servlet extends HttpServlet {
 					request.setAttribute("error", e.getMessage());
 				}
 				request.getSession().setAttribute("currentContent", "customer-profile.jsp");
-				request.getRequestDispatcher("/jsp/customer/customer-profile.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/customer/customer-profile.jsp").forward(request , response);
 				break;
 			case "employee":
 				try {
@@ -412,11 +418,11 @@ public class Servlet extends HttpServlet {
 				} catch (UIException e) {
 					request.setAttribute("error", e.getMessage());
 				}
-				request.getRequestDispatcher("/jsp/employee/employee-profile.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/employee/employee-profile.jsp").forward(request , response);
 		}
 	}
 
-	private void loadDashboard(HttpServletRequest request, HttpServletResponse response)
+	private void loadDashboard(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Object userId = request.getSession().getAttribute("userId");
 		Object userType = request.getSession().getAttribute("userType");
@@ -431,7 +437,7 @@ public class Servlet extends HttpServlet {
 				} catch (UIException e) {
 					request.setAttribute("error", e.getMessage());
 				}
-				request.getRequestDispatcher("/jsp/customer/customer-dash.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/customer/customer-dash.jsp").forward(request , response);
 				break;
 			case "employee":
 				switch (employeeRole.toString()) {
@@ -442,7 +448,7 @@ public class Servlet extends HttpServlet {
 						} catch (UIException e) {
 							request.setAttribute("error", e.getMessage());
 						}
-						request.getRequestDispatcher("/jsp/admin/admin-dash.jsp").forward(request, response);
+						request.getRequestDispatcher("/jsp/admin/admin-dash.jsp").forward(request , response);
 						break;
 					default:
 						Branch branch = new Branch();
@@ -453,13 +459,13 @@ public class Servlet extends HttpServlet {
 						} catch (UIException e) {
 							request.setAttribute("error", e.getMessage());
 						}
-						request.getRequestDispatcher("/jsp/employee/employee-dash.jsp").forward(request, response);
+						request.getRequestDispatcher("/jsp/employee/employee-dash.jsp").forward(request , response);
 						break;
 				}
 		}
 	}
 
-	private void statementPost(HttpServletRequest request, HttpServletResponse response)
+	private void statementPost(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		JSONObject json = null;
 		try {
@@ -520,11 +526,11 @@ public class Servlet extends HttpServlet {
 				request.setAttribute("error", e.getMessage());
 				e.printStackTrace();
 			}
-			request.getRequestDispatcher("/jsp/customer/customer-statement.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/customer/customer-statement.jsp").forward(request , response);
 		}
 	}
 
-	private void changePassword(HttpServletRequest request, HttpServletResponse response)
+	private void changePassword(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Long userId = (Long) request.getSession().getAttribute("userId");
 		String userType = request.getSession().getAttribute("userType").toString();
@@ -547,7 +553,7 @@ public class Servlet extends HttpServlet {
 			} catch (UIException e) {
 				request.setAttribute("passwordChangeError", e.getMessage());
 			}
-			request.getRequestDispatcher("/jsp/customer/customer-profile.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/customer/customer-profile.jsp").forward(request , response);
 		} else {
 			try {
 				Employee employee = opt.getEmployee(userId);
@@ -567,11 +573,11 @@ public class Servlet extends HttpServlet {
 			} catch (UIException e) {
 				request.setAttribute("passwordChangeError", e.getMessage());
 			}
-			request.getRequestDispatcher("/jsp/employee/employee-profile.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/employee/employee-profile.jsp").forward(request , response);
 		}
 	}
 
-	private void setPrimary(HttpServletRequest request, HttpServletResponse response)
+	private void setPrimary(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Long CustomerId = (Long) request.getSession().getAttribute("userId");
 		JSONObject json = bodyParser(request);
@@ -584,10 +590,10 @@ public class Servlet extends HttpServlet {
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 		}
-		request.getRequestDispatcher("/jsp/customer/customer-accounts.jsp").forward(request, response);
+		request.getRequestDispatcher("/jsp/customer/customer-accounts.jsp").forward(request , response);
 	}
 
-	private void login(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+	private void login(HttpServletRequest request, HttpServletResponse response, Operations opt) throws IOException, ServletException {
 		Long userId = Long.parseLong(request.getParameter("userId"));
 		if (request.getSession().getAttribute("userId") != null) {
 			if (((Long) request.getSession().getAttribute("userId")).equals(userId)) {
@@ -611,17 +617,17 @@ public class Servlet extends HttpServlet {
 			return;
 		} catch (UIException e) {
 			request.setAttribute("login-error", e.getMessage());
-			request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/login.jsp").forward(request , response);
 			return;
 		} catch (NumberFormatException e){
 			request.setAttribute("login-error", e.getMessage());
-			request.getRequestDispatcher("/jsp/login.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/login.jsp").forward(request , response);
 			return;
 		}
 
 	}
 
-	private void deposit(HttpServletRequest request, HttpServletResponse response)
+	private void deposit(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Transaction transaction = new Transaction();
 		JSONObject json = bodyParser(request);
@@ -640,9 +646,9 @@ public class Servlet extends HttpServlet {
 					throw new UIException("not your account lol!");
 				}
 			} catch (UIException e) {
-				loadAfterTranscation(request);
+				loadAfterTranscation(request,opt);
 				request.setAttribute("error", e.getMessage());
-				request.getRequestDispatcher("/jsp/customer/customer-deposit.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/customer/customer-deposit.jsp").forward(request , response);
 				return;
 			}
 		} else {
@@ -650,7 +656,7 @@ public class Servlet extends HttpServlet {
 				customerId = opt.getCustomerId(sourceAccountNumber);
 			} catch (UIException e) {
 				request.setAttribute("error", e.getMessage());
-				request.getRequestDispatcher("/jsp/employee/employee-deposit.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/employee/employee-deposit.jsp").forward(request , response);
 				return;
 			}
 		}
@@ -665,22 +671,22 @@ public class Servlet extends HttpServlet {
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 			if (userType.equals("customer")) {
-				loadAfterTranscation(request);
+				loadAfterTranscation(request,opt);
 			}
-			request.getRequestDispatcher("/jsp/" + userType + "-deposit.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/" + userType + "-deposit.jsp").forward(request , response);
 			return;
 		}
 		request.setAttribute("tid", id);
 		if (userType.toString().equals("customer")) {
-			loadAfterTranscation(request);
-			request.getRequestDispatcher("/jsp/customer/customer-deposit.jsp").forward(request, response);
+			loadAfterTranscation(request,opt);
+			request.getRequestDispatcher("/jsp/customer/customer-deposit.jsp").forward(request , response);
 		} else {
-			request.getRequestDispatcher("/jsp/employee/employee-deposit.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/employee/employee-deposit.jsp").forward(request , response);
 		}
 		return;
 	}
 
-	private void withdraw(HttpServletRequest request, HttpServletResponse response)
+	private void withdraw(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Transaction transaction = new Transaction();
 		JSONObject json = bodyParser(request);
@@ -699,9 +705,9 @@ public class Servlet extends HttpServlet {
 					throw new UIException("not your account lol!");
 				}
 			} catch (UIException e) {
-				loadAfterTranscation(request);
+				loadAfterTranscation(request,opt);
 				request.setAttribute("error", e.getMessage());
-				request.getRequestDispatcher("/jsp/customer/customer-withdraw.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/customer/customer-withdraw.jsp").forward(request , response);
 				return;
 			}
 		} else {
@@ -709,7 +715,7 @@ public class Servlet extends HttpServlet {
 				customerId = opt.getCustomerId(sourceAccountNumber);
 			} catch (UIException e) {
 				request.setAttribute("error", e.getMessage());
-				request.getRequestDispatcher("/jsp/employee/employee-withdraw.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/employee/employee-withdraw.jsp").forward(request , response);
 				return;
 			}
 		}
@@ -724,22 +730,22 @@ public class Servlet extends HttpServlet {
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 			if (userType.equals("customer")) {
-				loadAfterTranscation(request);
+				loadAfterTranscation(request,opt);
 			}
-			request.getRequestDispatcher("/jsp/" + userType + "-withdraw.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/" + userType + "-withdraw.jsp").forward(request , response);
 			return;
 		}
 		request.setAttribute("tid", id);
 		if (userType.toString().equals("customer")) {
-			loadAfterTranscation(request);
-			request.getRequestDispatcher("/jsp/customer/customer-withdraw.jsp").forward(request, response);
+			loadAfterTranscation(request,opt);
+			request.getRequestDispatcher("/jsp/customer/customer-withdraw.jsp").forward(request , response);
 		} else {
-			request.getRequestDispatcher("/jsp/employee/employee-withdraw.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/employee/employee-withdraw.jsp").forward(request , response);
 		}
 		return;
 	}
 
-	private void transfer(HttpServletRequest request, HttpServletResponse response)
+	private void transfer(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		String userType = request.getSession().getAttribute("userType").toString();
 		JSONObject json = bodyParser(request);
@@ -760,9 +766,9 @@ public class Servlet extends HttpServlet {
 					throw new UIException("not your account lol!");
 				}
 			} catch (UIException e) {
-				loadAfterTranscation(request);
+				loadAfterTranscation(request,opt);
 				request.setAttribute("error", e.getMessage());
-				request.getRequestDispatcher("/jsp/customer/customer-transfer.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/customer/customer-transfer.jsp").forward(request , response);
 				return;
 			}
 		} else {
@@ -770,7 +776,7 @@ public class Servlet extends HttpServlet {
 				customerId = opt.getCustomerId(sourceAccountNumber);
 			} catch (UIException e) {
 				request.setAttribute("error", e.getMessage());
-				request.getRequestDispatcher("/jsp/employee/employee-transfer.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/employee/employee-transfer.jsp").forward(request , response);
 				return;
 			}
 		}
@@ -789,24 +795,24 @@ public class Servlet extends HttpServlet {
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 			if (userType.toString().equals("customer")) {
-				loadAfterTranscation(request);
-				request.getRequestDispatcher("/jsp/customer/customer-transfer.jsp").forward(request, response);
+				loadAfterTranscation(request,opt);
+				request.getRequestDispatcher("/jsp/customer/customer-transfer.jsp").forward(request , response);
 			} else {
-				request.getRequestDispatcher("/jsp/employee/employee-transfer.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/employee/employee-transfer.jsp").forward(request , response);
 			}
 			return;
 		}
 		request.setAttribute("tid", id);
 		if (userType.toString().equals("customer")) {
-			loadAfterTranscation(request);
-			request.getRequestDispatcher("/jsp/customer/customer-transfer.jsp").forward(request, response);
+			loadAfterTranscation(request,opt);
+			request.getRequestDispatcher("/jsp/customer/customer-transfer.jsp").forward(request , response);
 		} else {
-			request.getRequestDispatcher("/jsp/employee/employee-transfer.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/employee/employee-transfer.jsp").forward(request , response);
 		}
 		return;
 	}
 
-	private void updateProfile(HttpServletRequest request, HttpServletResponse response)
+	private void updateProfile(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Long userId = (Long) request.getSession().getAttribute("userId");
 		try {
@@ -815,7 +821,7 @@ public class Servlet extends HttpServlet {
 			opt.updateUserEmail(userId, email);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/customer/customer-profile.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/customer/customer-profile.jsp").forward(request , response);
 			return;
 		}
 		String userType = request.getSession().getAttribute("userType").toString();
@@ -824,27 +830,27 @@ public class Servlet extends HttpServlet {
 				case "customer":
 					Customer customer = opt.getCustomer(userId);
 					request.setAttribute("customer", customer);
-					request.getRequestDispatcher("/jsp/customer/customer-profile.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/customer/customer-profile.jsp").forward(request , response);
 					break;
 				case "employee":
 					Employee employee = opt.getEmployee(userId);
 					request.setAttribute("employee", employee);
-					request.getRequestDispatcher("/jsp/employee/employee-profile.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/employee/employee-profile.jsp").forward(request , response);
 					break;
 			}
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 			if (userType.equals("customer")) {
-				request.getRequestDispatcher("/jsp/customer/customer-profile.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/customer/customer-profile.jsp").forward(request , response);
 				return;
 			}
-			request.getRequestDispatcher("/jsp/employee/employee-profile.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/employee/employee-profile.jsp").forward(request , response);
 			return;
 		}
 
 	}
 
-	private void addEmployee(HttpServletRequest request, HttpServletResponse response)
+	private void addEmployee(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		try {
 			JSONObject json = bodyParser(request);
@@ -859,15 +865,15 @@ public class Servlet extends HttpServlet {
 			employee.setAadhar(Long.parseLong(json.getString("aadhar")));
 			employee = opt.addEmployee(employee);
 			request.setAttribute("employee", employee);
-			request.getRequestDispatcher("/jsp/card/employee.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/employee.jsp").forward(request , response);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/add/add-employee.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/add/add-employee.jsp").forward(request , response);
 			return;
 		}
 	}
 
-	private void viewEmployee(HttpServletRequest request, HttpServletResponse response)
+	private void viewEmployee(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		try {
 			JSONObject json = bodyParser(request);
@@ -875,14 +881,14 @@ public class Servlet extends HttpServlet {
 			Long id = (Long.parseLong(json.getString("employeeId")));
 			employee = opt.getEmployee(id);
 			request.setAttribute("employee", employee);
-			request.getRequestDispatcher("/jsp/card/employee.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/employee.jsp").forward(request , response);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/view/view-employee.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/view/view-employee.jsp").forward(request , response);
 		}
 	}
 
-	private void updateEmployee(HttpServletRequest request, HttpServletResponse response)
+	private void updateEmployee(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		try {
 			JSONObject json = bodyParser(request);
@@ -895,15 +901,15 @@ public class Servlet extends HttpServlet {
 			employee.setBranchId(Long.parseLong(json.getString("branchId")));
 			employee = opt.updateEmployee(employee);
 			request.setAttribute("employee", employee);
-			request.getRequestDispatcher("/jsp/card/employee.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/employee.jsp").forward(request , response);
 			return;
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/card/employee.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/employee.jsp").forward(request , response);
 		}
 	}
 
-	private void addBranch(HttpServletRequest request, HttpServletResponse response)
+	private void addBranch(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		try {
 			JSONObject json = bodyParser(request);
@@ -917,13 +923,13 @@ public class Servlet extends HttpServlet {
 			request.setAttribute("branch", branch);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/add/add-branch.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/add/add-branch.jsp").forward(request , response);
 			return;
 		}
-		request.getRequestDispatcher("/jsp/card/branch.jsp").forward(request, response);
+		request.getRequestDispatcher("/jsp/card/branch.jsp").forward(request , response);
 	}
 
-	private void updateBranch(HttpServletRequest request, HttpServletResponse response)
+	private void updateBranch(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Branch br = null;
 		try {
@@ -937,15 +943,15 @@ public class Servlet extends HttpServlet {
 			opt.updateBranch(branch);
 			branch = opt.getBranch(branch);
 			request.setAttribute("branch", branch);
-			request.getRequestDispatcher("/jsp/card/branch.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/branch.jsp").forward(request , response);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 			request.setAttribute("branch", br);
-			request.getRequestDispatcher("/jsp/card/branch.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/branch.jsp").forward(request , response);
 		}
 	}
 
-	private void viewBranch(HttpServletRequest request, HttpServletResponse response)
+	private void viewBranch(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		try {
 			JSONObject json = bodyParser(request);
@@ -954,18 +960,18 @@ public class Servlet extends HttpServlet {
 			branch.setBranchId(branchId);
 			branch = opt.getBranch(branch);
 			request.setAttribute("branch", branch);
-			request.getRequestDispatcher("/jsp/card/branch.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/branch.jsp").forward(request , response);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/view/view-branch.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/view/view-branch.jsp").forward(request , response);
 		} catch (Exception e) {
 
 			request.setAttribute("error", "internal error");
-			request.getRequestDispatcher("/jsp/view/view-branch.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/view/view-branch.jsp").forward(request , response);
 		}
 	}
 
-	private void addCustomer(HttpServletRequest request, HttpServletResponse response)
+	private void addCustomer(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		try {
 			JSONObject json = bodyParser(request);
@@ -979,14 +985,14 @@ public class Servlet extends HttpServlet {
 			customer.setPan(json.getString("pan"));
 			customer = opt.addCustomer(customer);
 			request.setAttribute("customer", customer);
-			request.getRequestDispatcher("/jsp/card/customer.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/customer.jsp").forward(request , response);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/add/add-customer.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/add/add-customer.jsp").forward(request , response);
 		}
 	}
 
-	private void updateCustomer(HttpServletRequest request, HttpServletResponse response)
+	private void updateCustomer(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		try {
 			JSONObject json = bodyParser(request);
@@ -1000,14 +1006,14 @@ public class Servlet extends HttpServlet {
 			opt.updateCustomer(customer);
 			customer = opt.getCustomer(customer.getUserId());
 			request.setAttribute("customer", customer);
-			request.getRequestDispatcher("/jsp/card/customer.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/customer.jsp").forward(request , response);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/card/cusomer.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/cusomer.jsp").forward(request , response);
 		}
 	}
 
-	private void viewCustomer(HttpServletRequest request, HttpServletResponse response)
+	private void viewCustomer(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		try {
 			JSONObject json = bodyParser(request);
@@ -1015,14 +1021,14 @@ public class Servlet extends HttpServlet {
 			customer.setUserId(Long.parseLong(json.getString("customerId")));
 			customer = opt.getCustomer(customer.getUserId());
 			request.setAttribute("customer", customer);
-			request.getRequestDispatcher("/jsp/card/customer.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/customer.jsp").forward(request , response);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/view/view-customer.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/view/view-customer.jsp").forward(request , response);
 		}
 	}
 
-	private void addAccount(HttpServletRequest request, HttpServletResponse response)
+	private void addAccount(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Object employeeRole = request.getSession().getAttribute("employeeRole");
 		try {
@@ -1043,19 +1049,19 @@ public class Servlet extends HttpServlet {
 			}
 			account = opt.addAccount(account);
 			request.setAttribute("account", account);
-			request.getRequestDispatcher("/jsp/card/account.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/account.jsp").forward(request , response);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
 			if (employeeRole != null && employeeRole.equals("admin")) {
-				request.getRequestDispatcher("/jsp/admin/admin-add-account.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/admin/admin-add-account.jsp").forward(request , response);
 			} else {
-				request.getRequestDispatcher("/jsp/employee/employee-add-account.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/employee/employee-add-account.jsp").forward(request , response);
 				return;
 			}
 		}
 	}
 
-	private void updateAccount(HttpServletRequest request, HttpServletResponse response)
+	private void updateAccount(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		String employeeRole = request.getSession().getAttribute("employeeRole").toString();
 		try {
@@ -1071,22 +1077,22 @@ public class Servlet extends HttpServlet {
 			} else {
 				if (!json.getString("branchId").equals(branchId.toString())) {
 					request.setAttribute("error", "not your branch");
-					request.getRequestDispatcher("/jsp/view/view-account.jsp").forward(request, response);
+					request.getRequestDispatcher("/jsp/view/view-account.jsp").forward(request , response);
 					return;
 				}
 			}
 			opt.updateAccount(account);
 			account = opt.getAccount(account.getAccountNumber());
 			request.setAttribute("account", account);
-			request.getRequestDispatcher("/jsp/card/account.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/account.jsp").forward(request , response);
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/card/account.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/card/account.jsp").forward(request , response);
 		}
 
 	}
 
-	private void viewAccount(HttpServletRequest request, HttpServletResponse response)
+	private void viewAccount(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		Object employeeRole = request.getSession().getAttribute("employeeRole");
 		if (employeeRole != null && employeeRole.equals("admin")) {
@@ -1106,12 +1112,12 @@ public class Servlet extends HttpServlet {
 					}
 				}
 				request.setAttribute("accounts", accounts);
-				request.getRequestDispatcher("/jsp/card-list/account.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/card-list/account.jsp").forward(request , response);
 				return;
 			} else {
 				Account account = opt.getAccount(Long.parseLong(accountNumber));
 				request.setAttribute("account", account);
-				request.getRequestDispatcher("/jsp/card/account.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/card/account.jsp").forward(request , response);
 				return;
 			}
 		} catch (UIException e) {
@@ -1119,12 +1125,12 @@ public class Servlet extends HttpServlet {
 			if (employeeRole != null && employeeRole.equals("admin")) {
 				request.setAttribute("isAdmin", true);
 			}
-			request.getRequestDispatcher("/jsp/view-account.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/view-account.jsp").forward(request , response);
 			return;
 		}
 	}
 
-	private void viewStatement(HttpServletRequest request, HttpServletResponse response)
+	private void viewStatement(HttpServletRequest request, HttpServletResponse response, Operations opt)
 			throws IOException, ServletException {
 		try {
 			JSONObject json = bodyParser(request);
@@ -1148,7 +1154,7 @@ public class Servlet extends HttpServlet {
 				request.setAttribute("pageNumber", pageNumber);
 				request.setAttribute("fromDate", fromDateStr);
 				request.setAttribute("toDate", toDateStr);
-				request.getRequestDispatcher("/jsp/card-list/statements.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/card-list/statements.jsp").forward(request , response);
 				return;
 			}
 			fromDateStr = json.getString("fromDate");
@@ -1174,7 +1180,7 @@ public class Servlet extends HttpServlet {
 				request.setAttribute("sourceAccountNumber", sourceAccountNumber);
 				request.setAttribute("pages", (long) Math.ceil(pages / 10.0));
 				request.setAttribute("transactions", transactions);
-				request.getRequestDispatcher("/jsp/card-list/statements.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/card-list/statements.jsp").forward(request , response);
 				return;
 			} else if (!sourceAccountNumber.equals("")) {
 				transactions = opt.getTransactions(Long.parseLong(sourceAccountNumber),
@@ -1188,12 +1194,12 @@ public class Servlet extends HttpServlet {
 				request.setAttribute("transactionId", transactionId);
 				request.setAttribute("pages", (long) Math.ceil(pages / 10.0));
 				request.setAttribute("transactions", transactions);
-				request.getRequestDispatcher("/jsp/card-list/statements.jsp").forward(request, response);
+				request.getRequestDispatcher("/jsp/card-list/statements.jsp").forward(request , response);
 				return;
 			}
 		} catch (UIException e) {
 			request.setAttribute("error", e.getMessage());
-			request.getRequestDispatcher("/jsp/view/view-statement.jsp").forward(request, response);
+			request.getRequestDispatcher("/jsp/view/view-statement.jsp").forward(request , response);
 			return;
 		}
 	}
@@ -1209,7 +1215,7 @@ public class Servlet extends HttpServlet {
 		return content;
 	}
 
-	private void loadAfterTranscation(HttpServletRequest request) {
+	private void loadAfterTranscation(HttpServletRequest request,Operations opt) {
 		try {
 			if (request.getSession().getAttribute("userType").toString().equals("customer")) {
 				Long customerId = (Long) request.getSession().getAttribute("userId");
