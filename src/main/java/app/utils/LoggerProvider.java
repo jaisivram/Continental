@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 public class LoggerProvider {
-    public static String path = System.getenv("tomcat_root") + "/logs/";
+    public static String path = System.getenv("continental_tomcat_root") + "/logs/";
     public static Logger logger = null;
     public static Logger getLogger() {
         if(logger!=null){

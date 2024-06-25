@@ -4,7 +4,7 @@ x<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="U
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>500 Internal Server Error</title>
+    <title>404 Page Not Found</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -35,9 +35,7 @@ x<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="U
 </head>
 <body>
     <div class="container">
-        <h1>500 Internal Server Error</h1>
-        <p>Oops! Something went wrong on our server. We're sorry for the inconvenience.</p>
-        <p>Please try again later, or contact our support team if the problem persists.</p>
+        <h1>404 Page Not Found</h1>
     </div>
 </body>
 </html>

@@ -13,7 +13,7 @@ public class PropLoader {
 		}
 		else {
 			try {
-				FileReader reader = new FileReader(System.getenv("tomcat_root")+"/conf/Continental.conf");
+				FileReader reader = new FileReader(System.getenv("continental_tomcat_root")+"/conf/Continental.conf");
 				props = new Properties();
 				props.load(reader);
 				return props.getProperty(key);

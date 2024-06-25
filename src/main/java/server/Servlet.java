@@ -136,7 +136,6 @@ public class Servlet extends HttpServlet {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 			response.sendError(500);
 		} finally {
-			logger.info("destroy called actual GET");
 			SQLClient.destroyClient();	
 		}
 	}
@@ -242,7 +241,6 @@ public class Servlet extends HttpServlet {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 			response.sendError(500);
 		} finally {
-			logger.info("destroy called POST");
 			SQLClient.destroyClient();	
 		}
 	}

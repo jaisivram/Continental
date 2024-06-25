@@ -1,5 +1,4 @@
 package app.persist;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -27,36 +26,30 @@ public class SQLClient {
     private String password = PropLoader.getProp(db+"_password");
     private SQLClient() throws Xception {
         try {
-            Class.forName(PropLoader.getProp(db+"_driver_class")); //com.mysql.cj.jdbc.Driver
+            Class.forName(PropLoader.getProp(db+"_driver_class")); 
         }
         catch(Exception e) {
         	logger.log(Level.SEVERE,e.getMessage(),e);
-        	throw new Xception("mysql error");
+        	throw new Xception("sql error");
         }
     }
 
     public static void destroyClient() {
-        logger.info(" msg ::: " + (threadLocalInstance.get()==null));
-        logger.info("destroy client called null..");
         threadLocalInstance.set(null);
     }
 
     public static SQLClient getInstance() throws Xception {
         try {
-            logger.info("getInstance is called...");
             SQLClient sqlClient = threadLocalInstance.get();
             if (sqlClient == null) {
-                logger.info("new local sqlclient created");
                 sqlClient = new SQLClient();
                 threadLocalInstance.set(sqlClient);
-            } else {
-                logger.info("sqlclient created already available");
             }
             return sqlClient;
         }
         catch(RuntimeException e) {
         	logger.log(Level.SEVERE,e.getMessage(),e);
-        	throw new Xception("mysql error");
+        	throw new Xception("sql error");
         }
     }
 
@@ -134,7 +127,7 @@ public class SQLClient {
         		throw new Xception("duplicate entry");
         	}
         	logger.log(Level.SEVERE,e.getMessage(),e);
-        	throw new Xception("mysql error");
+        	throw new Xception("sql error");
         }
     }
 
